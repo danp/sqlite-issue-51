@@ -134,7 +134,7 @@ func saveHash(dbFile string, hash string, fileName string) error {
 
 	query := `INSERT OR REPLACE INTO fileHash(hash, fileName, lastChecked)
 			VALUES(?, ?, ?);`
-	_, err = executeSQL(db, query,
+	rows, err := executeSQL(db, query,
 		hash,
 		fileName,
 		time.Now().Unix(),
@@ -142,6 +142,7 @@ func saveHash(dbFile string, hash string, fileName string) error {
 	if err != nil {
 		return fmt.Errorf("error saving hash to database: %w", err)
 	}
+	defer rows.Close()
 
 	log.WithFields(log.Fields{
 		"Hash": hash,
@@ -204,6 +205,7 @@ func executeSQL(db *sql.DB, query string, values ...interface{}) (*sql.Rows, err
 	if err != nil {
 		return &sql.Rows{}, fmt.Errorf("could not prepare statement: %w", err)
 	}
+	defer statement.Close()
 
 	result, err := statement.Query(values...) // Execute SQL Statements
 	if err != nil {
